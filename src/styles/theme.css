@@ -1,0 +1,97 @@
+:root {
+    /* Pastel Palette */
+    --color-pink-50: #fff0f5;
+    --color-pink-100: #ffd6e0;
+    --color-pink-200: #ffadc2;
+    --color-pink-300: #ff85a3;
+    --color-pink-500: #f472b6;
+    /* Just for contrast */
+
+    --color-cream-50: #fdfbf7;
+    --color-cream-100: #fff8e7;
+    --color-cream-200: #faejd7;
+    /* A bit warmer */
+
+    --color-brown-50: #f5f5f4;
+    --color-brown-100: #e7e5e4;
+    --color-brown-500: #78716c;
+    --color-brown-800: #44403c;
+    /* Text */
+
+    --color-gold: #fbbf24;
+    --color-gold-hover: #f59e0b;
+
+    --color-bg: var(--color-pink-50);
+    --color-card-bg: #ffffff;
+    --color-text-primary: var(--color-brown-800);
+    --color-text-secondary: var(--color-brown-500);
+
+    /* Spacing */
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 8px;
+
+    /* Fonts */
+    --font-body: 'Quicksand', system-ui, sans-serif;
+    /* Friendly, rounded */
+    --font-heading: 'Caveat', cursive;
+    /* Handwritten feel like the image */
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-soft: 0 8px 30px rgba(244, 114, 182, 0.15);
+    /* Pinkish glow */
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    color: var(--color-brown-800);
+    font-weight: 700;
+}
+
+button {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-body);
+}
+
+.card {
+    background: var(--color-card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--color-pink-100);
+    padding: 2rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
