@@ -93,7 +93,6 @@ export const MonthProvider = ({ children }) => {
             toggleFeaturedReview,
             deleteReview,
             getReviewsForMonth,
-            getActiveMonth,
             getActiveMonth
         }}>
             {children}
