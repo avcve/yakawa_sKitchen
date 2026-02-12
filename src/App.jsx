@@ -1,13 +1,22 @@
 import { useState } from 'react';
 import { MonthProvider, useMonth } from './context/MonthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Layout } from './components/Layout';
 import { ReviewForm } from './components/ReviewForm';
 import { ReviewList } from './components/ReviewList';
 import { AdminDashboard } from './components/AdminDashboard';
+import { FoodDisplay } from './components/FoodDisplay';
+import { Login } from './pages/Login';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import logo from './assets/logo.png';
+
+const PrivateRoute = ({ children }) => {
+  const { user } = useAuth();
+  return user ? children : <Navigate to="/login" replace />;
+};
 
 const Home = () => {
-  const { activeMonthId, months, isAdmin } = useMonth();
+  const { activeMonthId, months } = useMonth();
   const activeMonth = months.find(m => m.id === activeMonthId);
 
   if (!activeMonth) return <div>Loading...</div>;
@@ -16,7 +25,17 @@ const Home = () => {
     <Layout>
       {/* Hero / Intro */}
       <section className="text-center space-y-4 mb-16 animate-fade-in relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-pink-100 rounded-full blur-3xl opacity-50 -z-10"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-pink-100 rounded-full blur-3xl opacity-50 -z-10"></div>
+
+        {/* Brand Logo - Centered above title */}
+        <div className="flex justify-center mb-6">
+          <img
+            src={logo}
+            alt="Yakawa's Kitchen"
+            className="w-32 md:w-40 h-auto object-contain rounded-lg drop-shadow-sm hover:scale-105 transition-transform duration-500"
+          />
+        </div>
+
         <h1 className="text-5xl md:text-7xl font-heading text-pink-500 drop-shadow-sm">
           {activeMonth.name} Experience
         </h1>
@@ -31,18 +50,16 @@ const Home = () => {
         )}
       </section>
 
-      {isAdmin && (
-        <section className="mb-12 border-t-2 border-dashed border-pink-200 pt-8 relative">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-4 text-pink-300 text-sm font-bold uppercase tracking-widest">
-            Admin Zone
-          </div>
-          <AdminDashboard />
+      {/* Food Display Section - Above Rating Form */}
+      {activeMonth.status === 'active' && (
+        <section className="animate-slide-up">
+          <FoodDisplay month={activeMonth} />
         </section>
       )}
 
       {/* Submission Form */}
       {activeMonth.status === 'active' && (
-        <section className="mb-20 animate-slide-up">
+        <section className="mb-20 animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <ReviewForm />
         </section>
       )}
@@ -62,14 +79,27 @@ const Home = () => {
 
 function App() {
   return (
-    <MonthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </MonthProvider>
+    <AuthProvider>
+      <MonthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/admin"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <AdminDashboard />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </MonthProvider>
+    </AuthProvider>
   );
 }
 

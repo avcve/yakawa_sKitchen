@@ -26,7 +26,7 @@ export const MonthProvider = ({ children }) => {
         return active ? active.id : months[0]?.id;
     });
 
-    const [isAdmin, setIsAdmin] = useState(false); // Simple toggle for MVP
+
 
     useEffect(() => {
         localStorage.setItem('yakawa_months', JSON.stringify(months));
@@ -49,11 +49,21 @@ export const MonthProvider = ({ children }) => {
 
     const addMonth = (name) => {
         const id = name.toLowerCase().replace(/\s+/g, '-');
-        setMonths(prev => [...prev, { id, name, status: 'upcoming' }]);
+        setMonths(prev => [...prev, {
+            id,
+            name,
+            status: 'upcoming',
+            description: '',
+            images: []
+        }]);
     };
 
     const updateMonthStatus = (id, status) => {
         setMonths(prev => prev.map(m => m.id === id ? { ...m, status } : m));
+    };
+
+    const updateMonthDetails = (id, details) => {
+        setMonths(prev => prev.map(m => m.id === id ? { ...m, ...details } : m));
     };
 
     const toggleFeaturedReview = (reviewId) => {
@@ -79,12 +89,12 @@ export const MonthProvider = ({ children }) => {
             addReview,
             addMonth,
             updateMonthStatus,
+            updateMonthDetails,
             toggleFeaturedReview,
             deleteReview,
             getReviewsForMonth,
             getActiveMonth,
-            isAdmin,
-            setIsAdmin
+            getActiveMonth
         }}>
             {children}
         </MonthContext.Provider>

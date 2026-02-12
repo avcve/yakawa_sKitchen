@@ -6,6 +6,7 @@ import { Upload, X, Loader2 } from 'lucide-react';
 export const ReviewForm = () => {
     const { addReview, activeMonthId } = useMonth();
     const [formData, setFormData] = useState({
+        nickname: '',
         rating: 0,
         specifics: { taste: 0, portion: 0, presentation: 0 },
         love: '',
@@ -80,7 +81,7 @@ export const ReviewForm = () => {
 
         setSubmitting(false);
         setSuccess(true);
-        setFormData({ rating: 0, specifics: { taste: 0, portion: 0, presentation: 0 }, love: '', improve: '', images: [] });
+        setFormData({ nickname: '', rating: 0, specifics: { taste: 0, portion: 0, presentation: 0 }, love: '', improve: '', images: [] });
     };
 
     if (success) {
@@ -105,8 +106,19 @@ export const ReviewForm = () => {
                 <p className="text-brown-400">We'd love to hear what you think!</p>
             </div>
 
-            {/* Step 1: Overall */}
+            {/* Step 1: Identity & Overall */}
             <div className="section">
+                <div className="mb-6">
+                    <label className="block text-brown-600 mb-2 font-bold text-sm uppercase tracking-wider">Your Nickname (Optional)</label>
+                    <input
+                        type="text"
+                        value={formData.nickname}
+                        onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+                        placeholder="e.g. FoodieKing or SecretChef"
+                        className="w-full p-3 rounded-xl border border-pink-100 focus:border-pink-300 focus:ring-2 focus:ring-pink-50 outline-none transition-all text-brown-700 bg-pink-50/30"
+                    />
+                </div>
+
                 <h3 className="text-xl font-bold text-brown-700 mb-4 flex items-center gap-2">
                     <span className="bg-pink-100 text-pink-500 rounded-full w-8 h-8 flex items-center justify-center text-sm">1</span>
                     Overall Rating

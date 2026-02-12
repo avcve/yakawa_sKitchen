@@ -28,8 +28,8 @@ export const ReviewList = () => {
                 <div
                     key={review.id}
                     className={`bg-white p-6 rounded-3xl transition-all duration-300 border flex flex-col h-full animate-fade-in group relative overflow-hidden ${review.isFeatured
-                            ? 'border-yellow-200 shadow-md transform hover:-translate-y-1 ring-2 ring-yellow-100/50'
-                            : 'border-pink-50 shadow-sm hover:shadow-md hover:border-pink-100'
+                        ? 'border-yellow-200 shadow-md transform hover:-translate-y-1 ring-2 ring-yellow-100/50'
+                        : 'border-pink-50 shadow-sm hover:shadow-md hover:border-pink-100'
                         }`}
                 >
                     {review.isFeatured && (
@@ -44,7 +44,7 @@ export const ReviewList = () => {
                                 <User size={20} />
                             </div>
                             <div>
-                                <h4 className="font-bold text-brown-800 text-sm">Guest</h4>
+                                <h4 className="font-bold text-brown-800 text-sm">{review.nickname || 'Guest'}</h4>
                                 <span className="text-brown-400 text-xs flex items-center gap-1 font-mono">
                                     <Calendar size={10} />
                                     {new Date(review.timestamp).toLocaleDateString()}
