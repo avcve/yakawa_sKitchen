@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useMonth } from '../context/MonthContext';
 import { useAuth } from '../context/AuthContext';
-import { Trash2, Lock, Plus, Eye, Star, LogOut, UserCog, Save, Upload, X } from 'lucide-react';
+import { Trash2, Lock, Plus, Eye, Star, LogOut, Save, Upload, X, Loader2 } from 'lucide-react';
+
+import { supabase } from '../supabaseClient';
 
 const FoodDetailsForm = ({ monthId }) => {
     const { months, updateMonthDetails } = useMonth();
@@ -9,6 +11,7 @@ const FoodDetailsForm = ({ monthId }) => {
 
     const [description, setDescription] = useState('');
     const [images, setImages] = useState([]);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         if (month) {
@@ -17,18 +20,36 @@ const FoodDetailsForm = ({ monthId }) => {
         }
     }, [monthId, months]);
 
-    const handleImageUpload = (e) => {
+    const handleImageUpload = async (e) => {
         const files = Array.from(e.target.files);
+        if (files.length === 0) return;
 
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImages(prev => [...prev, reader.result]);
-            };
-            if (file) {
-                reader.readAsDataURL(file);
+        setUploading(true);
+        const newImageUrls = [];
+
+        try {
+            for (const file of files) {
+                const fileName = `${monthId}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+                const { data, error } = await supabase.storage
+                    .from('images')
+                    .upload(fileName, file);
+
+                if (error) throw error;
+
+                // Get Public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('images')
+                    .getPublicUrl(fileName);
+
+                newImageUrls.push(publicUrl);
             }
-        });
+            setImages(prev => [...prev, ...newImageUrls]);
+        } catch (error) {
+            console.error("Upload failed:", error);
+            alert("Failed to upload image.");
+        } finally {
+            setUploading(false);
+        }
     };
 
     const removeImage = (index) => {
@@ -78,9 +99,9 @@ const FoodDetailsForm = ({ monthId }) => {
                         </div>
                     ))}
 
-                    <label className="w-24 h-24 rounded-xl border-2 border-dashed border-pink-200 flex flex-col items-center justify-center text-pink-300 cursor-pointer hover:bg-pink-50 hover:border-pink-300 transition-colors">
-                        <Upload size={24} />
-                        <span className="text-xs mt-1">Upload</span>
+                    <label className={`w-24 h-24 rounded-xl border-2 border-dashed border-pink-200 flex flex-col items-center justify-center text-pink-300 cursor-pointer hover:bg-pink-50 hover:border-pink-300 transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                        {uploading ? <Loader2 className="animate-spin" /> : <Upload size={24} />}
+                        <span className="text-xs mt-1">{uploading ? '...' : 'Upload'}</span>
                         <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
                     </label>
                 </div>
@@ -108,13 +129,9 @@ export const AdminDashboard = () => {
         deleteReview
     } = useMonth();
 
-    const { logout, updateCredentials, credentials } = useAuth();
+    const { logout } = useAuth();
 
     const [newMonthName, setNewMonthName] = useState('');
-    const [showSettings, setShowSettings] = useState(false);
-    const [newUsername, setNewUsername] = useState(credentials.username);
-    const [newPassword, setNewPassword] = useState(credentials.password);
-    const [msg, setMsg] = useState('');
 
     const handleAddMonth = (e) => {
         e.preventDefault();
@@ -122,13 +139,6 @@ export const AdminDashboard = () => {
             addMonth(newMonthName);
             setNewMonthName('');
         }
-    };
-
-    const handleUpdateCredentials = (e) => {
-        e.preventDefault();
-        updateCredentials(newUsername, newPassword);
-        setMsg('Credentials updated!');
-        setTimeout(() => setMsg(''), 3000);
     };
 
     const allReviews = [...reviews].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -141,12 +151,6 @@ export const AdminDashboard = () => {
                 </h2>
                 <div className="flex gap-2">
                     <button
-                        onClick={() => setShowSettings(!showSettings)}
-                        className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all ${showSettings ? 'bg-pink-100 text-pink-600' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
-                    >
-                        <UserCog size={18} /> Settings
-                    </button>
-                    <button
                         onClick={logout}
                         className="px-4 py-2 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl flex items-center gap-2 transition-all"
                     >
@@ -154,38 +158,6 @@ export const AdminDashboard = () => {
                     </button>
                 </div>
             </div>
-
-            {showSettings && (
-                <div className="bg-pink-50 p-6 rounded-2xl border border-pink-100 animate-slide-up">
-                    <h3 className="text-xl font-bold text-brown-700 mb-4 flex items-center gap-2">
-                        <UserCog size={20} /> Update Credentials
-                    </h3>
-                    <form onSubmit={handleUpdateCredentials} className="flex flex-col md:flex-row gap-4 items-end">
-                        <div className="flex-1 w-full">
-                            <label className="block text-xs font-bold text-gray-400 mb-1">Username</label>
-                            <input
-                                type="text"
-                                value={newUsername}
-                                onChange={e => setNewUsername(e.target.value)}
-                                className="w-full"
-                            />
-                        </div>
-                        <div className="flex-1 w-full">
-                            <label className="block text-xs font-bold text-gray-400 mb-1">Password</label>
-                            <input
-                                type="text"
-                                value={newPassword}
-                                onChange={e => setNewPassword(e.target.value)}
-                                className="w-full"
-                            />
-                        </div>
-                        <button type="submit" className="bg-pink-500 text-white px-6 py-3 rounded-xl hover:bg-pink-600 flex items-center gap-2">
-                            <Save size={18} /> Save
-                        </button>
-                    </form>
-                    {msg && <p className="text-green-500 mt-2 text-sm font-bold animate-pulse">{msg}</p>}
-                </div>
-            )}
 
             <div className="grid md:grid-cols-2 gap-8">
                 {/* Month Management */}

@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource/caveat": "^5.2.8",
     "@fontsource/quicksand": "^5.2.10",
+    "@supabase/supabase-js": "^2.95.3",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

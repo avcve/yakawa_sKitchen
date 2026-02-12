@@ -1,58 +1,48 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    // Initialize credentials from localStorage or default
-    const [credentials, setCredentials] = useState(() => {
-        const saved = localStorage.getItem('yakawa_admin_creds');
-        return saved ? JSON.parse(saved) : { username: 'admin', password: 'password123' };
-    });
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const [user, setUser] = useState(null); // null = not logged in, object = logged in
-
-    // Check for existing session
     useEffect(() => {
-        const session = localStorage.getItem('yakawa_admin_session');
-        if (session) {
-            setUser(JSON.parse(session));
-        }
+        // Check active session
+        const getSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+            setLoading(false);
+        };
+
+        getSession();
+
+        // Listen for changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+            setLoading(false);
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
-    // Persist credentials when changed
-    useEffect(() => {
-        localStorage.setItem('yakawa_admin_creds', JSON.stringify(credentials));
-    }, [credentials]);
-
-    const login = (username, password) => {
-        if (username === credentials.username && password === credentials.password) {
-            const userData = { username, role: 'admin' };
-            localStorage.setItem('yakawa_admin_session', JSON.stringify(userData));
-            setUser(userData);
-            return true;
-        }
-        return false;
+    const login = async (email, password) => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (error) throw error;
+        return data;
     };
 
-    const logout = () => {
-        localStorage.removeItem('yakawa_admin_session');
-        setUser(null);
-    };
-
-    const updateCredentials = (newUsername, newPassword) => {
-        setCredentials({ username: newUsername, password: newPassword });
-        // Optionally logout user to force re-login, or update session
-        // Let's keep them logged in but update the session user name if needed
-        if (user) {
-            const updatedUser = { ...user, username: newUsername };
-            localStorage.setItem('yakawa_admin_session', JSON.stringify(updatedUser));
-            setUser(updatedUser);
-        }
+    const logout = async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, updateCredentials, credentials }}>
-            {children}
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
+            {!loading && children}
         </AuthContext.Provider>
     );
 };

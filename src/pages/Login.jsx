@@ -4,19 +4,24 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
 export const Login = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        if (login(username, password)) {
+        setLoading(true);
+        try {
+            await login(email, password);
             navigate('/admin');
-        } else {
-            setError('Invalid credentials');
+        } catch (err) {
+            setError(err.message || 'Invalid login credentials');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -37,13 +42,13 @@ export const Login = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-bold text-brown-600 mb-2">Username</label>
+                        <label className="block text-sm font-bold text-brown-600 mb-2">Email</label>
                         <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-pink-300 focus:ring-2 focus:ring-pink-100 outline-none transition-all"
-                            placeholder="Enter username"
+                            placeholder="admin@example.com"
                         />
                     </div>
                     <div>
@@ -58,9 +63,10 @@ export const Login = () => {
                     </div>
                     <button
                         type="submit"
-                        className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-pink-200 mt-4"
+                        disabled={loading}
+                        className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-pink-200 mt-4 disabled:opacity-50"
                     >
-                        Login
+                        {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
 

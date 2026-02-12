@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StarRating } from './StarRating';
 import { useMonth } from '../context/MonthContext';
 import { Upload, X, Loader2 } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 export const ReviewForm = () => {
     const { addReview, activeMonthId } = useMonth();
@@ -59,29 +60,41 @@ export const ReviewForm = () => {
 
         setSubmitting(true);
 
-        // Simulate upload delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            const uploadedImageUrls = [];
 
-        // Convert images to base64 for local storage (demo only)
-        const imagePromises = formData.images.map(img => {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(img.file);
+            // Upload images to Supabase Storage
+            for (const img of formData.images) {
+                const file = img.file;
+                const fileName = `review-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+
+                const { data, error } = await supabase.storage
+                    .from('images')
+                    .upload(fileName, file);
+
+                if (error) throw error;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('images')
+                    .getPublicUrl(fileName);
+
+                uploadedImageUrls.push(publicUrl);
+            }
+
+            await addReview({
+                ...formData,
+                images: uploadedImageUrls,
+                monthId: activeMonthId,
             });
-        });
 
-        const base64Images = await Promise.all(imagePromises);
-
-        addReview({
-            ...formData,
-            images: base64Images,
-            monthId: activeMonthId,
-        });
-
-        setSubmitting(false);
-        setSuccess(true);
-        setFormData({ nickname: '', rating: 0, specifics: { taste: 0, portion: 0, presentation: 0 }, love: '', improve: '', images: [] });
+            setSuccess(true);
+            setFormData({ nickname: '', rating: 0, specifics: { taste: 0, portion: 0, presentation: 0 }, love: '', improve: '', images: [] });
+        } catch (error) {
+            console.error("Failed to submit review:", error);
+            alert("Failed to submit review. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     if (success) {

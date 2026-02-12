@@ -11,15 +11,35 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import logo from './assets/logo.png';
 
 const PrivateRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-pink-50">
+      <div className="animate-spin text-4xl">🍲</div>
+    </div>
+  );
+
   return user ? children : <Navigate to="/login" replace />;
 };
 
 const Home = () => {
-  const { activeMonthId, months } = useMonth();
+  const { activeMonthId, months, loading } = useMonth();
   const activeMonth = months.find(m => m.id === activeMonthId);
 
-  if (!activeMonth) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-pink-50">
+      <div className="animate-bounce text-4xl">🍲</div>
+    </div>
+  );
+
+  if (!activeMonth) return (
+    <Layout>
+      <div className="text-center py-20 space-y-4">
+        <h1 className="text-4xl font-heading text-brown-700">The Kitchen is Quiet...</h1>
+        <p className="text-brown-500">No active experience found. Check back later for something delicious!</p>
+      </div>
+    </Layout>
+  );
 
   return (
     <Layout>
